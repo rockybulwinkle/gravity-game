@@ -18,7 +18,7 @@
 #include "gameMechanics/game.h"
 #include <stdio.h>
 #include "staryBackground/stars.h"
-
+#include "render/grid.h"
 #include "menus/menu.h"
 
 int numPlanets = 5;
@@ -90,6 +90,7 @@ int main(int argc, char **argv) {
 
 	initializeTextures();
 	int buttons;
+	initializeGrid();
 	while (1) {
 
 		WPAD_ScanPads(); // Scan the Wiimotes

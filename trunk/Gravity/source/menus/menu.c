@@ -20,7 +20,7 @@ int mainMenu(){
 	GRRLIB_Printf(20,20,tex_Calibri, 0xFFFFFFFF, 1, "press start");
 	int buttons;
 	int selection = 0;
-	freeStarMemory();
+	//freeStarMemory();
 	initializeTextures();
 	double x=0;
 	double y=0;
@@ -35,7 +35,7 @@ int mainMenu(){
 
 		GRRLIB_Render();
 	}
-
+	//freeStarMemory();
 	return selection;
 }
 void displayMiniMap(FILE*file){
