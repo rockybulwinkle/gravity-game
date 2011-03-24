@@ -145,7 +145,7 @@ void render(Ship*ship, Planet * planet) {
 	int jj = 0;
 	int offsetX = 0;
 	int offsetY = 0;
-
+	warpGrid(ship);
 	GRRLIB_ClipReset();
 	GRRLIB_Line(SCREEN_X / 2, ORIGIN_Y, SCREEN_X / 2, SCREEN_Y, BORDER_COLOR);
 	for (ii = 0; ii < NUM_SHIPS; ii++) {
