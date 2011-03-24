@@ -14,6 +14,7 @@
 #include "../VectorCalculus/vector.h"
 #include <ogc/lwp_watchdog.h>
 #include "../staryBackground/stars.h"
+#include "grid.h"
 //#include "../fonts/Calibri_18.h"
 extern GRRLIB_texImg * tex_Calibri;
 void renderShip(Ship * ship, int offsetX, int offsetY, int shipNum) {
@@ -170,6 +171,7 @@ void render(Ship*ship, Planet * planet) {
 		offsetX -= ship[ii].x;
 		offsetY -= ship[ii].y;
 		displayStars(offsetX, offsetY, &ship[ii]);
+		drawGrid(offsetX, offsetY);
 		renderPlanets(planet, offsetX, offsetY, ship[ii].x, ship[ii].y, ship);
 	}
 	GRRLIB_ClipReset();
