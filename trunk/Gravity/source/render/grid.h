@@ -13,7 +13,7 @@
 int indexGrid(int x, int y);
 void drawGrid(int offsetX, int offsetY);
 void initializeGrid();
-//void warpGrid(Planet * ships);
+//double warpGrid(Ship * ships);
 typedef struct{
 	float x;  // point's original X position
 	float y;  // point's original Y position

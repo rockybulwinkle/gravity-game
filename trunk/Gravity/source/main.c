@@ -22,7 +22,7 @@
 #include "menus/menu.h"
 
 int numPlanets = 5;
-int Max_Bullets = 1000;
+int Max_Bullets = 500;
 GRRLIB_texImg *tex_Calibri;
 int main(int argc, char **argv) {
 	// Initialise the Graphics & Video subsystem
