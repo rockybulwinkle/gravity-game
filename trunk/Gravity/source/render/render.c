@@ -126,7 +126,7 @@ void renderPlanets(Planet *planet, int offsetX, int offsetY, float shipX,
 						/ 2 - r, SCREEN_X / 2 + 2 * r, SCREEN_Y + 2 * r, x, y)) {
 					color = planet[i].owner == NO_OWNER ? planet[i].color
 							: ship[planet[i].owner].color;
-					GRRLIB_Circle(x + offsetX, y + offsetY, r, color, 0);
+					GRRLIB_Circle(x + offsetX, y + offsetY, r, color, 1);
 					count++;
 					j = 2;
 					k = 2;
@@ -145,7 +145,9 @@ void render(Ship*ship, Planet * planet) {
 	int jj = 0;
 	int offsetX = 0;
 	int offsetY = 0;
-	warpGrid(ship);
+	profiler(1);
+	warpGrid(ship, planet);
+	GRRLIB_Printf(30,0,tex_Calibri, 0xFFFFFFFF, .5, "%d", profiler(0));
 	GRRLIB_ClipReset();
 	GRRLIB_Line(SCREEN_X / 2, ORIGIN_Y, SCREEN_X / 2, SCREEN_Y, BORDER_COLOR);
 	for (ii = 0; ii < NUM_SHIPS; ii++) {
@@ -171,7 +173,9 @@ void render(Ship*ship, Planet * planet) {
 		offsetX -= ship[ii].x;
 		offsetY -= ship[ii].y;
 		displayStars(offsetX, offsetY, &ship[ii]);
+		profiler(1);
 		drawGrid(offsetX, offsetY);
+		GRRLIB_Printf(offsetX, 50, tex_Calibri, 0xFFFFFFFF, .5, "%d", profiler(0));
 		renderPlanets(planet, offsetX, offsetY, ship[ii].x, ship[ii].y, ship);
 	}
 	GRRLIB_ClipReset();
@@ -221,17 +225,17 @@ void render(Ship*ship, Planet * planet) {
 // changes the color of bullets based its relative speed to a ship.
 void colorBullets(Bullet * bullet, Ship * ship) { // arguments refer to a set of bullets and the ship we are coloring them for
 	int i = 0;
-	int red;
-	int green;
-	int blue;
-	int alpha;
-	float dDist;
-	int relVX;
-	int relVY;
-	int relX;
-	int relY;
 	u64 time = ticks_to_millisecs(gettime());
 	for (i = 0; i < NUM_BULLETS; i++) {
+		int red;
+		int green;
+		int blue;
+		int alpha;
+		float dDist;
+		int relVX;
+		int relVY;
+		int relX;
+		int relY;
 		red = R(bullet->baseColor);
 		green = G(bullet->baseColor);
 		blue = B(bullet->baseColor);

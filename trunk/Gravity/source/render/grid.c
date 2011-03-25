@@ -6,17 +6,18 @@
  */
 #include <grrlib.h>
 #include <math.h>
-#include "grid.h"
 #include "../definitions.h"
+#include "grid.h"
+
 #include <stdlib.h>
-#define NUM_WIDTH 30
-#define NUM_HEIGHT 30
-#define SPACING 60
+#define NUM_WIDTH 60
+#define NUM_HEIGHT 60
+#define SPACING LEVEL_WIDTH/NUM_WIDTH
 #define NUM_POINTS NUM_WIDTH*NUM_HEIGHT
 #define SPRING_CONSTANT 0
 #define DAMPING_CONSTANT_SPRING 1
 #define MAX_DEVIATION 20
-#define GRID_MASS 1000000
+#define GRID_MASS 50000
 
 #define LARGE_NUMBER  326973 // a very large number given to me by my roommate.
 GridPoint *gridPoints;
@@ -68,16 +69,17 @@ void drawGrid(int offsetX, int offsetY) {
 		}
 	}
 }
-double warpGrid(Ship * ships, Planet * planets) {
+void warpGrid(Ship * ships, Planet * planets) {
 	int x, y;
 	int shipCount;
-	for (x = 1; x < NUM_WIDTH - 1; x++) {
-		for (y = 1; y < NUM_HEIGHT - 1; y++) {
+	for (x = 0; x < NUM_WIDTH; x++) {
+		for (y = 0; y < NUM_HEIGHT; y++) {
 			gridPoints[indexGrid(x, y)].dx = 0;
 			gridPoints[indexGrid(x, y)].dy = 0;
 			float dx1, dy1, r;
 			float dvx = 0;
 			float dvy = 0;
+			int planetCount;
 			// distance to the point to the right
 			for (shipCount = 0; shipCount < NUM_SHIPS; shipCount++) {
 				float dv;
@@ -91,10 +93,61 @@ double warpGrid(Ship * ships, Planet * planets) {
 				dvy += dv * dy1 / r;
 
 			}
-			//dv = hypot(dvx,dvy);
+			for (planetCount = 0; planetCount < NUM_PLANETS; planetCount++) {
+				float dv;
+				dx1 = gridPoints[indexGrid(x, y)].x
+						+ gridPoints[indexGrid(x, y)].dx
+						- planets[planetCount].x;
+				dy1 = gridPoints[indexGrid(x, y)].y
+						+ gridPoints[indexGrid(x, y)].dy
+						- planets[planetCount].y;
+				r = hypotf(dx1, dy1);
+				dv = planets[planetCount].m * GRID_MASS / pow(r, 2) / 50;
+
+				dvx += dv * dx1 / r;
+				dvy += dv * dy1 / r;
+
+			}
+
 			gridPoints[indexGrid(x, y)].dx -= dvx;
 
 			gridPoints[indexGrid(x, y)].dy -= dvy;
+
+			int closestPlanet = NUM_PLANETS;
+			int closestPlanetDistance = LARGE_NUMBER; // A very large number given to me by my roommate
+
+			for (planetCount = 0; planetCount < NUM_PLANETS; planetCount++) {
+				float xx = gridPoints[indexGrid(x, y)].x
+						+ gridPoints[indexGrid(x, y)].dx
+						- planets[planetCount].x;
+				float yy = gridPoints[indexGrid(x, y)].y
+						+ gridPoints[indexGrid(x, y)].dy
+						- planets[planetCount].y;
+				float xx2 = gridPoints[indexGrid(x, y)].x
+						- planets[planetCount].x;
+				float yy2 = gridPoints[indexGrid(x, y)].y
+						- planets[planetCount].y;
+
+				float r1 = hypotf(xx, yy); // distance from deviated grid to ship
+				float r2 = hypotf(xx2, yy2); // distance from absolute grid to ship
+				// ammount of deviation:
+				float r3 = hypotf(gridPoints[indexGrid(x, y)].dx,
+						gridPoints[indexGrid(x, y)].dy);
+
+				if (r3 > r2 && closestPlanetDistance > r2) {
+					closestPlanetDistance = r2;
+					closestPlanet = planetCount;
+				}
+
+			}
+
+			if (closestPlanet < NUM_PLANETS && closestPlanetDistance
+					!= LARGE_NUMBER) {
+				gridPoints[indexGrid(x, y)].dx = planets[closestPlanet].x
+						- gridPoints[indexGrid(x, y)].x;
+				gridPoints[indexGrid(x, y)].dy = planets[closestPlanet].y
+						- gridPoints[indexGrid(x, y)].y;
+			}
 
 			int closestShip = NUM_SHIPS;
 			int closestDistance = LARGE_NUMBER; // A very large number given to me by my roommate

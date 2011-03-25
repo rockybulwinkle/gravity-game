@@ -14,7 +14,7 @@
 #include <ogc/lwp_watchdog.h>
 #include "../staryBackground/stars.h"
 #include "../gameMechanics/game.h"
-Ship* initializeShips(int numShips, Ship ship[]) {
+Ship* initializeShips(int numShips, Ship * ship) {
 	int i;
 	int j;
 	u32 color;
@@ -45,6 +45,7 @@ Ship* initializeShips(int numShips, Ship ship[]) {
 		ship[i].diedFromPlanet = 0;
 		ship[i].isAI = 0;
 		for (j = 0; j < NUM_BULLETS; j++) {
+
 			ship[i].bullets[j].vx = 0;
 			ship[i].bullets[j].vy = 0;
 			ship[i].bullets[j].x = 0;

@@ -22,7 +22,7 @@
 #include "menus/menu.h"
 
 int numPlanets = 5;
-int Max_Bullets = 1000; // there is some bug here where red ship can't shoot when this is set too low.
+int Max_Bullets = 100; // there is some bug here where red ship can't shoot when this is set too low.
 GRRLIB_texImg *tex_Calibri;
 int main(int argc, char **argv) {
 	// Initialise the Graphics & Video subsystem
@@ -81,7 +81,6 @@ int main(int argc, char **argv) {
 	planet[4].health = PLANET_HEALTH;
 
 	ship = initializeShips(NUM_SHIPS, ship);
-	Max_Bullets = 1000;
 	//saveLevel(planet, ship);
 	u8 frame_rate;
 	int i = 0;
@@ -91,8 +90,14 @@ int main(int argc, char **argv) {
 	initializeTextures();
 	int buttons;
 	initializeGrid();
-	while (1) {
 
+	GRRLIB_texImg * screenBeforeEffects = GRRLIB_CreateEmptyTexture(SCREEN_X,
+			SCREEN_Y);
+
+	GRRLIB_texImg * screenAfterEffects = GRRLIB_CreateEmptyTexture(SCREEN_X,
+			SCREEN_Y);
+
+	while (1) {
 		WPAD_ScanPads(); // Scan the Wiimotes
 		buttons = WPAD_ButtonsDown(0);
 		// If [HOME] was pressed on the first Wiimote, break out of the loop
@@ -136,6 +141,7 @@ int main(int argc, char **argv) {
 				"bullets: %d", ship[0].numBullets);
 		GRRLIB_Printf(20, 120, tex_Calibri, 0xFFFFFFFF * ENABLE_DEBUGGING, 1,
 				"bullets: %d", ship[1].numBullets);
+
 		GRRLIB_Render();
 	}
 

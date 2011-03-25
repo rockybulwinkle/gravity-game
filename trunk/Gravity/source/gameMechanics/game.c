@@ -31,15 +31,15 @@ void bulletDamage(Ship * ship, Planet * planets) {
 	int i, j, k, relX, relY;
 	Bullet * enemy; //used to set enemy's bullets to an array
 	for (j = 0; j < NUM_SHIPS; j++) { // count through bullets attacking
-		for (k = 0; k < NUM_SHIPS; k++) { // apply to each ship recieving
+		for (k = 0; k < NUM_SHIPS; k++) { // apply to each ship receiving
 			enemy = ship[j].bullets; //set our bullets to an array, do each time because of pointer arithmetic
 			for (i = j == k ? NUM_BULLETS : 0; i < NUM_BULLETS; i++) { // only do this loop if the bullets are not your own.
-				if (enemy->drawn) {
-					relX = ship[k].x - enemy->x; //calculate relative position
-					relY = ship[k].y - enemy->y;
+				if (enemy[i].drawn) {
+					relX = ship[k].x - enemy[i].x; //calculate relative position
+					relY = ship[k].y - enemy[i].y;
 					if (hypot(relX, relY) < ship[k].r) { //if the bullet is inside the ships radius
-						enemy->drawn = 0; //the bullet is no longer drawn
-						ship[k].health -= hypot(enemy->vx, enemy->vy); //decrement the ship's health by the bullet's velocity
+						enemy[i].drawn = 0; //the bullet is no longer drawn
+						ship[k].health -= hypot(enemy[i].vx, enemy[i].vy); //decrement the ship's health by the bullet's velocity
 						if (ship[k].health < 0) { //if the ship's health dropped down below 0, kill it
 							killShip(&ship[k], planets); //kills ship.  resides in game.c
 							ship[j].points++; //deal points
@@ -47,7 +47,6 @@ void bulletDamage(Ship * ship, Planet * planets) {
 						}
 					}
 				}
-				enemy++;
 			}
 		}
 	}
@@ -60,17 +59,16 @@ void planetDamage(Ship * ship, Planet * planets) {
 		for (k = 0; k < NUM_PLANETS; k++) { // apply to each ship recieving
 			enemy = ship[j].bullets; //set our bullets to an array, do each time because of pointer arithmetic
 			for (i = j == planets[k].owner ? NUM_BULLETS : 0; i < NUM_BULLETS; i++) { // only do this loop if the bullets are not your own.
-				if (enemy->drawn) { //if the bullet is active
-					relX = planets[k].x - enemy->x; //calculate relative position
-					relY = planets[k].y - enemy->y;
+				if (enemy[i].drawn) { //if the bullet is active
+					relX = planets[k].x - enemy[i].x; //calculate relative position
+					relY = planets[k].y - enemy[i].y;
 					if (hypot(relX, relY) < planets[k].r) { //if the planet's health drops below zero:
-						enemy->drawn = 0; //deactivate the bullet
-						planets[k].health -= hypot(enemy->vx, enemy->vy); //decrement the planet's health by the bullet's velocity
+						enemy[i].drawn = 0; //deactivate the bullet
+						planets[k].health -= hypot(enemy[i].vx, enemy[i].vy); //decrement the planet's health by the bullet's velocity
 						if (planets[k].health < 0) // if the planet is dead:
 							killPlanet(&planets[k]); //kill the planet.  function resides in game.c
 					}
 				}
-				enemy++;
 			}
 		}
 	}
