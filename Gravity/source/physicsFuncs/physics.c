@@ -56,14 +56,14 @@ void gravityBullets(Ship * ship, Planet * GW) {
 	Bullet * bullets = ship->bullets;
 	for (i = 0; i < NUM_BULLETS; i++) {
 		// only apply gravity to bullets that are active
-		if (bullets->drawn == 1) {
+		if (bullets[i].drawn == 1) {
 			// code here is same as gravity for ships above.
 			for (jj = -1; jj <= 1; jj++) {
 				x = GW->x + LEVEL_WIDTH * jj;
 				for (kk = -1; kk <= 1; kk++) {
 					y = GW->y + LEVEL_HEIGHT * kk;
-					dx = bullets->x - x;
-					dy = bullets->y - y;
+					dx = bullets[i].x - x;
+					dy = bullets[i].y - y;
 					//find the distance between the two objects
 					r = hypot(dx, dy);
 					//calculate the change in velocity (i.e. acceleration)
@@ -72,12 +72,11 @@ void gravityBullets(Ship * ship, Planet * GW) {
 					dvx = dv * dx / r;
 					dvy = dv * dy / r;
 					//add the change in velocity in x and y to the ships x and y
-					bullets->vx -= dvx;
-					bullets->vy -= dvy;
+					bullets[i].vx -= dvx;
+					bullets[i].vy -= dvy;
 				}
 			}
 		}
-		bullets++;
 	}
 }
 
