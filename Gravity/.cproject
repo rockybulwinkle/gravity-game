@@ -147,7 +147,7 @@
 <parser enabled="true"/>
 </buildOutputProvider>
 <scannerInfoProvider id="specsFile">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="gcc" useDefault="true"/>
+<runAction arguments="-O3 -E -P -v -dD ${plugin_state_location}/${specs_file}" command="gcc" useDefault="true"/>
 <parser enabled="true"/>
 </scannerInfoProvider>
 </profile>

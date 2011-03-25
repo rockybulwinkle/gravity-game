@@ -19,7 +19,6 @@ typedef struct{
 	float y;  // point's original Y position
 	float dx; // point's deviation from its original position in x and y
 	float dy;
-	float vx; // velocities in x and y
-	float vy;
+	float dv;
 	int color;
 } GridPoint;

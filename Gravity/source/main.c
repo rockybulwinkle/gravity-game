@@ -22,7 +22,7 @@
 #include "menus/menu.h"
 
 int numPlanets = 5;
-int Max_Bullets = 500;
+int Max_Bullets = 1000; // there is some bug here where red ship can't shoot when this is set too low.
 GRRLIB_texImg *tex_Calibri;
 int main(int argc, char **argv) {
 	// Initialise the Graphics & Video subsystem
