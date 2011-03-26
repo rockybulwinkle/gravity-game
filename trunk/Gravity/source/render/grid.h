@@ -11,7 +11,7 @@
 
 #endif /* GRID_H_ */
 int indexGrid(int x, int y);
-void drawGrid(int offsetX, int offsetY);
+void drawGrid(int offsetX, int offsetY, int shipNum);
 void initializeGrid();
 void warpGrid(Ship * ships, Planet * planets);
 typedef struct{
