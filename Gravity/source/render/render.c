@@ -174,7 +174,7 @@ void render(Ship*ship, Planet * planet) {
 		offsetY -= ship[ii].y;
 		displayStars(offsetX, offsetY, &ship[ii]);
 		profiler(1);
-		drawGrid(offsetX, offsetY);
+		drawGrid(offsetX, offsetY, ii);
 		GRRLIB_Printf(offsetX, 50, tex_Calibri, 0xFFFFFFFF, .5, "%d", profiler(0));
 		renderPlanets(planet, offsetX, offsetY, ship[ii].x, ship[ii].y, ship);
 	}
