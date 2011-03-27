@@ -10,7 +10,6 @@
 #include <stdlib.h>
 #include <grrlib.h>
 #include <math.h>
-#include "../FPS/fps.h"
 #include "../VectorCalculus/vector.h"
 #include <ogc/lwp_watchdog.h>
 #include "../staryBackground/stars.h"
@@ -52,7 +51,6 @@ void renderShip(Ship * ship, int offsetX, int offsetY, int shipNum) {
 	int count = 0;
 	for (j = 0; j < NUM_SHIPS; j++) {
 		bullet = ship[j].bullets;
-		profiler(1);
 		for (i = 0; i < NUM_BULLETS; i++) {
 			if (bullet->drawn == 1) {
 				/*
@@ -89,8 +87,6 @@ void renderShip(Ship * ship, int offsetX, int offsetY, int shipNum) {
 			}
 			bullet++;
 		}
-		GRRLIB_Printf(20, 140 + j * 20, tex_Calibri, 0xFFFFFFFF
-				* ENABLE_DEBUGGING, .7, "bullet Render Time: %d", profiler(0));
 		if (j != shipNum) {
 			ang2 = ship[j].ang;
 			x2 = ship[j].x;
@@ -145,9 +141,7 @@ void render(Ship*ship, Planet * planet) {
 	int jj = 0;
 	int offsetX = 0;
 	int offsetY = 0;
-	profiler(1);
 	warpGrid(ship, planet);
-	GRRLIB_Printf(30,0,tex_Calibri, 0xFFFFFFFF, .5, "%d", profiler(0));
 	GRRLIB_ClipReset();
 	GRRLIB_Line(SCREEN_X / 2, ORIGIN_Y, SCREEN_X / 2, SCREEN_Y, BORDER_COLOR);
 	for (ii = 0; ii < NUM_SHIPS; ii++) {
@@ -173,9 +167,7 @@ void render(Ship*ship, Planet * planet) {
 		offsetX -= ship[ii].x;
 		offsetY -= ship[ii].y;
 		displayStars(offsetX, offsetY, &ship[ii]);
-		profiler(1);
 		drawGrid(offsetX, offsetY, ii);
-		GRRLIB_Printf(offsetX, 50, tex_Calibri, 0xFFFFFFFF, .5, "%d", profiler(0));
 		renderPlanets(planet, offsetX, offsetY, ship[ii].x, ship[ii].y, ship);
 	}
 	GRRLIB_ClipReset();

@@ -25,7 +25,7 @@ INCLUDES	:=
 # options for code generation
 #---------------------------------------------------------------------------------
 
-CFLAGS	= -g -O3 -ffast-math -funsafe-math-optimizations -freciprocal-math -fassociative-math -ffinite-math-only -fno-signed-zeros -fno-trapping-math  -fcx-fortran-rules  -Wall $(MACHDEP) $(INCLUDE)
+CFLAGS	= -g -O3 -ffast-math -frename-registers -funroll-all-loops -fpeel-loops -Wall $(MACHDEP) $(INCLUDE)
 CXXFLAGS	=	$(CFLAGS)
 
 LDFLAGS	=	-g $(MACHDEP) -Wl,-Map,$(notdir $@).map

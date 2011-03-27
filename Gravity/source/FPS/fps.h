@@ -12,4 +12,4 @@
 #endif /* FPS_H_ */
 
 u8 calculateFPS();
-int profiler(int start);
+u64 profiler(int start);
