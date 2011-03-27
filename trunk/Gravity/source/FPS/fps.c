@@ -21,7 +21,7 @@ u8 calculateFPS() {
     return FPS;
 }
 
-int profiler(int start) {
+u64 profiler(int start) {
 	static u64 ticks = 0; // initialize to zero at compile time
 	int deltaTicks = 0;
 	if(start == 1){
@@ -30,5 +30,5 @@ int profiler(int start) {
 	else{
 		deltaTicks = gettime()-ticks;
 	}
-	return deltaTicks;
+	return ticks_to_cycles(deltaTicks);
 }
