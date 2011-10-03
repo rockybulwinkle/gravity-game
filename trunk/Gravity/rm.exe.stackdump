@@ -1,7 +1,0 @@
-Exception: STATUS_ACCESS_VIOLATION at eip=00000000
-eax=00000000 ebx=60E9449C ecx=002834C0 edx=60E9449C esi=00000000 edi=60E900D4
-ebp=0022FD48 esp=0022FD1C program=c:\WinAVR-20100110\utils\bin\rm.exe
-cs=001B ds=0023 es=0023 fs=003B gs=0000 ss=0023
-Stack trace:
-Frame     Function  Args
-End of stack trace
