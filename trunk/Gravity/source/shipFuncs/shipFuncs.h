@@ -10,7 +10,8 @@
 #endif /* SHIPFUNC_H_ */
 
 void checkControllers(int chan, Ship * ship, Planet * planet);
-void update(Ship *ship, Planet *planet, int chan);
+void update(Ship *ship, Planet *planet);
 Ship* initializeShips(int numShips, Ship * ship);
-void updateSpeeds(Ship * ship, Planet * planet);
+void updateShipSpeeds(Ship * ship);
 //Planet* initializePlanets();
+void updatePlanetBullets(Planet * planets);

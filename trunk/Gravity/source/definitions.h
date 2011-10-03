@@ -26,12 +26,12 @@
 #define NUM_BULLETS Max_Bullets    // Max bullets per player.  May be changed later to allow for 'upgrades'
 #define MAX_SHIP_SPEED 20    // Max ship speed
 #define MAX_BULLET_SPEED 5  // Max bullet speed
-#define BULLET_SPEED 2      // Player's bullet speed.  may be changed to allow for 'upgrades'
-#define RED_SHIFT_FACTOR    30// factor that determines how red or blue bullets become with relative speed
-#define BLUE_SHIFT_FACTOR   30
-#define GREEN_SHIFT_FACTOR  30
+#define BULLET_SPEED 5      // Player's bullet speed.  may be changed to allow for 'upgrades'
+#define RED_SHIFT_FACTOR    15// factor that determines how red or blue bullets become with relative speed
+#define BLUE_SHIFT_FACTOR   15
+#define GREEN_SHIFT_FACTOR  15
 #define BURN_FACTOR         // factor that determines how red a bullet becomes with absolute speed
-#define BULLET_LIFE   3000  // number of milli that the bullet will stay alive, also related to shift in alpha of bullets
+#define BULLET_LIFE   100000  // number of milli that the bullet will stay alive, also related to shift in alpha of bullets
 #define BULLET_LENGTH 0     // Length of certain type of bullets. Deprecated for now.
 #define SHIP_HEALTH 150
 #define PLANET_HEALTH 100
@@ -50,23 +50,30 @@
 #define MAP_SCALE 15
 #define MAP_OFFSET_X 253
 #define MAP_OFFSET_Y 347
-#define NUM_STARS 2000
+#define NUM_STARS 1000
 #define ENABLE_DEBUGGING 0
-#define CRASH_DAMAGE_MULTIPLIER 15
+#define CRASH_DAMAGE_MULTIPLIER 30
+#define PLANET_BULLET_NUM  30
 #define PI 3.1415936535897  //Pi constant.
+#define TIME_TO_UPGRADE 5
+#define NUM_EXPLODER 50 //number of subBullets in an exploding type bullet.
+#define EXPLODER_RADIUS 4
 /*
  * Structure used for bullets
  */
-typedef struct {
+struct Bullet{
 	float x; // X position
 	float y; // Y position
 	float vx; // X velocity
 	float vy; // Y velocity
 	int drawn; //indicate if the bullet is active or not
-	unsigned long milli; // time in milliseconds that the bullet entered play
+	long milli; // time in milliseconds that the bullet entered play
 	long int baseColor; // base color of the bullet
 	long int shiftedColor; // color of the bullet after shifting
-
+	int weaponType;
+	struct Bullet * subBullets;
+	int state;
+	int exploded;
 } Bullet;
 
 typedef struct {
@@ -81,7 +88,7 @@ typedef struct {
 	int color; // color of ship
 	float acc; // linear acceleration of ship
 	float angAcc; // angular acceleration of ship
-	Bullet * bullets; // pointer to ship's bullet array.  Made as a pointer so that 'upgrades' can be made to ship.
+	struct Bullet * bullets; // pointer to ship's bullet array.  Made as a pointer so that 'upgrades' can be made to ship.
 	int numBullets; // determines which slot in the bullet array to fill in with a new bullet so that older bullets are replaced first.
 	int isLanded; // true when landed on something, false otherwise.
 	int isShooting; // used to stager bullet rapid fire
@@ -92,6 +99,7 @@ typedef struct {
 	int points;
 	int diedFromPlanet;
 	int isAI;
+	int currentWeapon;
 } Ship;
 
 typedef struct {
@@ -102,6 +110,10 @@ typedef struct {
 	double color; // Color of planet
 	int owner; // ship # that this planet belongs to.  equal to NO_OWNER (defined above) if it has no owner
 	int health;
+	struct Bullet * bullets;
+	int numBullets;
+	int currentUpgrade;
+	int time_since_upgrade;
 } Planet;
 
 typedef struct {
@@ -110,6 +122,5 @@ typedef struct {
 } Vector;
 extern int numPlanets;
 extern int Max_Bullets;
+extern long frameCount;
 #endif /* DEFINITIONS_H_ */
-
-

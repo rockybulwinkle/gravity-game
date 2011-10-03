@@ -10,4 +10,4 @@
 
 #endif /* VECTOR_H_ */
 
-float dotProductVelocities(Ship * ship, Bullet * bullet);
+float dotProductVelocities(Ship * ship, struct Bullet * bullet);

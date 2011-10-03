@@ -7,7 +7,7 @@
 
 #include <math.h>
 #include "../definitions.h"
-float dotProductVelocities(Ship * ship, Bullet * bullet){
+float dotProductVelocities(Ship * ship, struct Bullet * bullet) {
 	float product;
 	product = ship->vx * bullet->vx + ship->vy * bullet->vy;
 	return product;

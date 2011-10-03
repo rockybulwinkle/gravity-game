@@ -21,3 +21,7 @@ void killPlanet(Planet * planet);
 void printPoints(Ship * ship);
 float compareAngles(Vector one, Vector two);
 void AI(Ship * ship, Planet * planet, int * turnLeft, int * turnRight, int * forward, int * backward, int * fire, int shipNum);
+void shootEnemyShips(Ship * ships, Planet * planets);
+void upgradeAvailable(Planet * planets);
+void giveUpgrades(Ship * ships, Planet * planets);
+void handleSpecialBullets(Ship * ships, Planet * planets);
