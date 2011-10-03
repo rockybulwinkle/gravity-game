@@ -11,72 +11,21 @@
 
 void gravityShip(Ship * ship, Planet * GW) { //takes a ship and modifies its trajectory and bullets due to gravity
 	// calculate the difference in x and y positions
-	register int dx;
-	register int dy;
-	register int r;
-	register float dv;
-	register float dvx;
-	register float dvy;
-	int x;
-	int y;
-	int kk;
-	int jj;
 	if (ship->isLanded != 1) {
-		for (jj = -1; jj <= 1; jj++) {
-			x = GW->x + LEVEL_WIDTH * jj;
-			for (kk = -1; kk <= 1; kk++) {
-				y = GW->y + LEVEL_HEIGHT * kk;
-				dx = ship->x - x;
-				dy = ship->y - y;
-				//find the distance between the two objects
-				r = hypot(dx, dy);
-				//calculate the change in velocity (i.e. acceleration)
-				dv = GW->m / pow(r, 2);
-				//convert the dv (change in velocity) to change of velocity in x and y
-				dvx = dv * dx / r;
-				dvy = dv * dy / r;
-				//add the change in velocity in x and y to the ships x and y
-				ship->vx -= dvx;
-				ship->vy -= dvy;
-			}
-		}
+		gravitate(ship->x, ship->y, &ship->vx, &ship->vy, GW->x, GW->y, GW->m);
 	}
 }
 
 void gravityBullets(Ship * ship, Planet * GW) {
 	int i;
-	register int dx;
-	register int dy;
-	register int r;
-	register float dv;
-	register float dvx;
-	register float dvy;
-	int jj,kk;
-	int x,y;
-	Bullet * bullets = ship->bullets;
+	struct Bullet * bullets = ship->bullets;
 	for (i = 0; i < NUM_BULLETS; i++) {
 		// only apply gravity to bullets that are active
-		if (bullets[i].drawn == 1) {
-			// code here is same as gravity for ships above.
-			for (jj = -1; jj <= 1; jj++) {
-				x = GW->x + LEVEL_WIDTH * jj;
-				for (kk = -1; kk <= 1; kk++) {
-					y = GW->y + LEVEL_HEIGHT * kk;
-					dx = bullets[i].x - x;
-					dy = bullets[i].y - y;
-					//find the distance between the two objects
-					r = hypot(dx, dy);
-					//calculate the change in velocity (i.e. acceleration)
-					dv = GW->m / pow(r, 2);
-					//convert the dv (change in velocity) to change of velocity in x and y
-					dvx = dv * dx / r;
-					dvy = dv * dy / r;
-					//add the change in velocity in x and y to the ships x and y
-					bullets[i].vx -= dvx;
-					bullets[i].vy -= dvy;
-				}
-			}
+		if (bullets->drawn == 1) {
+			gravitate(bullets->x, bullets->y, &bullets->vx, &bullets->vy,
+					GW->x, GW->y, GW->m);
 		}
+		bullets++;
 	}
 }
 
@@ -85,7 +34,7 @@ void collide(Ship * ship, Planet * GW, int planetNum) {
 	//start making a vector pointing from GW to ship
 	r[0] = GW->x - ship->x;
 	r[1] = GW->y - ship->y;
-	float mag = hypot(r[0], r[1]);
+	float mag = sqrt(r[0] * r[0] + r[1] * r[1]);
 	float vr[2];
 	float vt[2];
 	float dotProductRadial;
@@ -106,8 +55,8 @@ void collide(Ship * ship, Planet * GW, int planetNum) {
 				ship->vx = -vr[0] * DAMPING_CONSTANT + vt[0] * DAMPING_CONSTANT;
 				ship->vy = -vr[1] * DAMPING_CONSTANT + vt[1] * DAMPING_CONSTANT;
 				ship->isLanded = 0;
-				ship->health-=hypot(ship->vx,ship->vy);
-				if(ship->health<=0){
+				ship->health -= hypot(ship->vx, ship->vy);
+				if (ship->health <= 0) {
 					ship->diedFromPlanet = 1;
 				}
 			} else if (!ship->userOveride) {
@@ -145,7 +94,6 @@ void collide(Ship * ship, Planet * GW, int planetNum) {
 				ship->bullets[i].vy = -vr[1] + vt[1];
 				ship->bullets[i].x = -GW->r * r[0] + GW->x;
 				ship->bullets[i].y = -GW->r * r[1] + GW->y;
-
 			}
 		}
 	}
@@ -161,4 +109,71 @@ void checkLanding(Ship * ship, Planet * GW) {
 		ship->isLanded++;
 	}
 	ship->isLanded = ship->isLanded > 2 ? 2 : ship->isLanded;
+}
+
+inline void gravitate(float bX, float bY, float * bVX, float * bVY, float gwX,
+		float gwY, int gwM) {
+	int jj, kk;
+	for (jj = -1; jj <= 1; jj++) {
+		float x = gwX + LEVEL_WIDTH * jj;
+		for (kk = -1; kk <= 1; kk++) {
+			float y = gwY + LEVEL_HEIGHT * kk;
+			float dx = bX - x;
+			float dy = bY - y;
+			//find the distance between the two objects
+			float r = dx * dx + dy * dy;
+			//calculate the change in velocity (i.e. acceleration)
+			float dv = gwM / r;
+			r = babylonianSqrt(r);
+			//convert the dv (change in velocity) to change of velocity in x and y
+			float dvx = dv * dx / r;
+			float dvy = dv * dy / r;
+			//add the change in velocity in x and y to the ships x and y
+			*bVX -= dvx;
+			*bVY -= dvy;
+		}
+	}
+}
+
+inline void gravitateGrid(float bX, float bY, float * bVX, float * bVY,
+		float gwX, float gwY, int gwM) {
+	int jj, kk;
+	for (jj = -1; jj <= 1; jj++) {
+		float x = gwX + LEVEL_WIDTH * jj;
+		for (kk = -1; kk <= 1; kk++) {
+			float y = gwY + LEVEL_HEIGHT * kk;
+			float dx = bX - x;
+			float dy = bY - y;
+			//find the distance between the two objects
+			float r = dx * dx + dy * dy;
+			//calculate the change in velocity (i.e. acceleration)
+			float dv = gwM / r;
+			r = babylonianSqrt(r);
+			if (dv > r) {
+				*bVX = -dx;
+				*bVY = -dy;
+				return;
+			}
+			//convert the dv (change in velocity) to change of velocity in x and y
+			float dvx = dv * dx / r;
+			float dvy = dv * dy / r;
+			//add the change in velocity in x and y to the ships x and y
+			*bVX -= dvx;
+			*bVY -= dvy;
+		}
+	}
+}
+
+inline float babylonianSqrt(float x) {
+	float guess = 10;
+	float div = x / guess;
+	guess = (div + guess) / 2;
+	div = x / guess;
+	guess = (div + guess) / 2;
+	div = x / guess;
+	return (div + guess) / 2;
+}
+
+inline float babylonianHypot(float x, float y) {
+	return babylonianSqrt(x * x + y * y);
 }

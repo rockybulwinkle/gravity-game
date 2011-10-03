@@ -8,15 +8,21 @@
 #include "../definitions.h"
 #include "grrlib.h"
 #include "game.h"
+#include <time.h>
 #include <math.h>
 
 extern GRRLIB_texImg *tex_Calibri;
+extern long frameCount;
 
 //executes each game mechanic.  takes an array of ships and planets
 void doMechanics(Ship * ships, Planet * planets) {
 	dealDamage(ships, planets);
 	takeOverPlanets(ships, planets);
+	shootEnemyShips(ships, planets);
 	printPoints(ships);
+	upgradeAvailable(planets);
+	giveUpgrades(ships, planets);
+	handleSpecialBullets(ships, planets);
 }
 
 //deals damage.  called from game.doMechanics.
@@ -29,11 +35,11 @@ void dealDamage(Ship * ships, Planet * planets) {
 void bulletDamage(Ship * ship, Planet * planets) {
 	//does damage from other ship's bullets
 	int i, j, k, relX, relY;
-	Bullet * enemy; //used to set enemy's bullets to an array
+	struct Bullet * enemy; //used to set enemy's bullets to an array
 	for (j = 0; j < NUM_SHIPS; j++) { // count through bullets attacking
 		for (k = 0; k < NUM_SHIPS; k++) { // apply to each ship receiving
 			enemy = ship[j].bullets; //set our bullets to an array, do each time because of pointer arithmetic
-			for (i = j == k ? NUM_BULLETS : 0; i < NUM_BULLETS; i++) { // only do this loop if the bullets are not your own.
+			for (i = (j == k) ? NUM_BULLETS : 0; i < NUM_BULLETS; i++) { // only do this loop if the bullets are not your own.
 				if (enemy[i].drawn) {
 					relX = ship[k].x - enemy[i].x; //calculate relative position
 					relY = ship[k].y - enemy[i].y;
@@ -54,7 +60,7 @@ void bulletDamage(Ship * ship, Planet * planets) {
 void planetDamage(Ship * ship, Planet * planets) {
 	//does damage from other ship's bullets
 	int i, j, k, relX, relY;
-	Bullet * enemy; //used to set enemy's bullets to an array
+	struct Bullet * enemy; //used to set enemy's bullets to an array
 	for (j = 0; j < NUM_SHIPS; j++) { // count through bullets attacking
 		for (k = 0; k < NUM_PLANETS; k++) { // apply to each ship recieving
 			enemy = ship[j].bullets; //set our bullets to an array, do each time because of pointer arithmetic
@@ -113,8 +119,11 @@ void takeOverPlanets(Ship * ship, Planet * planet) {
 			if (ship[i].isLanded && planet[ship[i].landedPlanet].health == 0) {
 				planet[ship[i].landedPlanet].owner = ship[i].shipNum;
 				planet[ship[i].landedPlanet].health = PLANET_HEALTH;
+				planet[ship[i].landedPlanet].currentUpgrade = 0;
+				planet[ship[i].landedPlanet].time_since_upgrade = time(NULL);
 				ship[i].points++;
 				ship[i].landedPlanet = TAKEN_OVER;
+
 			}
 		}
 	}
@@ -131,99 +140,6 @@ void printPoints(Ship * ship) {
 	}
 }
 
-void AI(Ship * ship, Planet * planet, int * turnLeft, int * turnRight,
-		int * forward, int * backward, int * fire, int shipNum) {
-	const float DEEP_SPACE = 100;
-	//stores the 'intent' of the ship.
-	//used to remember what it was doing.
-	static int intent = 0;
-
-	//find the nearest planet
-	int i;
-	float nearestPlanetDistance = hypot(planet[0].x - ship->x, planet[0].y
-			- ship->y);
-	int nearestPlanetNum = 0;
-	for (i = 0; i < NUM_PLANETS; i++) {
-		int distanceToPlanet = hypot(planet[i].x - ship->x, planet[i].y
-				- ship->y);
-		int collisionDistance = sqrtf(powf(-planet[i].y
-				* ship->vx + ship->y * ship->vx + planet[i].x
-				* ship->vy - ship->x * ship->vy, 2) / (powf(ship->vx, 2)
-				+ powf(ship->vy, 2)));
-
-		if (distanceToPlanet < nearestPlanetDistance && collisionDistance
-				< planet[i].r + ship->r * 2) {
-			nearestPlanetDistance = distanceToPlanet;
-			nearestPlanetNum = i;
-		}
-	}
-	GRRLIB_Printf(400, 20, tex_Calibri, 0xFFFFFFFF, 1, "%d, %f",
-			nearestPlanetNum, nearestPlanetDistance);
-	Vector shipSpeedDir; //direction that the ship's velocity is headed
-	Vector planetVec; //direction to the planet
-	Vector unitPlanetVec;
-
-	// store the ship's unit vector for where it is pointing
-	float speed = hypot(ship->vx, ship->vy);
-	shipSpeedDir.x = ship->vx / speed;
-	shipSpeedDir.y = ship->vy / speed;
-
-	// stores the direction that the ship is facing
-	Vector shipDirUnitVec;
-	shipDirUnitVec.x = cos(ship->ang);
-	shipDirUnitVec.y = sin(ship->ang);
-	// store the vector that points from the ship to the planet
-	planetVec.x = planet[nearestPlanetNum].x - ship->x;
-	planetVec.y = planet[nearestPlanetNum].y - ship->y;
-
-	// calulate unit vector for ship to planet
-	float distanceToPlanet = hypot(planetVec.x, planetVec.y);
-	unitPlanetVec.x = planetVec.x / distanceToPlanet;
-	unitPlanetVec.y = planetVec.y / distanceToPlanet;
-
-	// calculate the distance to surface
-	float distanceToSurface = distanceToPlanet - planet[0].r;
-
-	// calculate the angle between the ship's velocity and the planet
-	float angleVelPlanet = compareAngles(shipSpeedDir, planetVec);
-
-	if (speed != 0) {
-
-		//calculates the smallest distance the the ship will be against the nearest planet in the future.
-		int collisionDistance = sqrtf(powf(-planet[nearestPlanetNum].y
-				* ship->vx + ship->y * ship->vx + planet[nearestPlanetNum].x
-				* ship->vy - ship->x * ship->vy, 2) / (powf(ship->vx, 2)
-				+ powf(ship->vy, 2)));
-
-		if (collisionDistance < planet[nearestPlanetNum].r + ship->r * 2) {
-			GRRLIB_Printf(400, 60, tex_Calibri, 0xFFFFFFFF, 1, "COLLISION");
-			Vector perpToPlanetVec;
-			perpToPlanetVec.x = -planetVec.y;
-			perpToPlanetVec.y = planetVec.x;
-			float angleToPoint = compareAngles(shipDirUnitVec, perpToPlanetVec);
-			GRRLIB_Printf(400, 90, tex_Calibri, 0xFFFFFFFF, 1, "%f",
-					angleToPoint);
-			*forward = 1;
-			if (angleToPoint > 0) {
-				if (angleToPoint < 1.626 + .4) {
-					*turnLeft = 1;
-				} else if (angleToPoint > 1.515 + .4) {
-					*turnRight = 1;
-				}
-
-			} else if (angleToPoint < 0) {
-				if (angleToPoint < -1.626 - .4) {
-					*turnLeft = 1;
-				} else if (angleToPoint > -1.515 - .4) {
-					*turnRight = 1;
-				}
-
-			}
-		}
-
-	}
-}
-
 //returns the angle between two vectors.  if V1 is clockwise on screen (counterclockwise on cartesian), angle is positive
 //if V1 is counterclockwise to V2 on screen (clockwise on cartesian), then angle is negative
 float compareAngles(Vector one, Vector two) {
@@ -235,100 +151,80 @@ float compareAngles(Vector one, Vector two) {
 	return calculatedAngle;
 }
 
-//for some reason this lands it perfectly:
-/**
- * void AI(Ship * ship, Planet * planet, int * turnLeft, int * turnRight,
- int * forward, int * backward, int * fire, int shipNum) {
- const float DEEP_SPACE = 100;
- //stores the 'intent' of the ship.
- //used to remember what it was doing.
- static int intent = 0;
+void shootEnemyShips(Ship * ships, Planet * planets) {
+	int i, j;
+	for (i = 0; i < NUM_SHIPS; i++) {
+		for (j = 0; j < NUM_PLANETS; j++) {
+			if (planets[j].owner != ships[i].shipNum && planets[j].owner
+					!= NO_OWNER) {
+				Planet * plan = &planets[j];
+				Ship * ship = &ships[i];
+				struct Bullet * bull =
+						&planets[j].bullets[planets[j].numBullets];
+				float r = sqrtf(pow((ship->x - plan->x), 2) + pow((ship->y
+						- plan->y), 2));
 
- //find the nearest planet
- int i;
- float nearestPlanetDistance = hypot(planet[0].x - ship->x, planet[0].y
- - ship->y);
- int nearestPlanetNum = 0;
- for (i = 0; i < NUM_PLANETS; i++) {
- int distanceToPlanet = hypot(planet[i].x - ship->x, planet[i].y
- - ship->y);
+				bull->x = (ship->x - plan->x) * plan->r / r;
+				bull->y = (ship->y - plan->y) * plan->r / r;
+				bull->vx = bull->x / plan->r * BULLET_SPEED;
+				bull->vy = bull->y / plan->r * BULLET_SPEED;
+				bull->x += plan->x;
+				bull->y += plan->y;
+				bull->drawn = 1;
+				bull->shiftedColor = 0xFFFFFFFF;
+				plan->numBullets++;
+				if (plan->numBullets >= PLANET_BULLET_NUM) {
+					plan->numBullets = 0;
+				}
+			}
+		}
+	}
+}
 
- if (distanceToPlanet < nearestPlanetDistance) {
- nearestPlanetDistance = distanceToPlanet;
- nearestPlanetNum = i;
- }
- }
- GRRLIB_Printf(400, 20, tex_Calibri, 0xFFFFFFFF, 1, "%d, %f",
- nearestPlanetNum, nearestPlanetDistance);
- Vector shipSpeedDir; //direction that the ship's velocity is headed
- Vector planetVec; //direction to the planet
- Vector unitPlanetVec;
+void upgradeAvailable(Planet * planets) {
+	int i;
+	for (i = 0; i < NUM_PLANETS; i++) {
+		if (time(NULL) - planets[i].time_since_upgrade > TIME_TO_UPGRADE
+				&& planets[i].owner != NO_OWNER && planets[i].currentUpgrade
+				== 0) {
+			planets[i].currentUpgrade = 2;
+			planets[i].time_since_upgrade = time(NULL);
+		}
+	}
+}
 
- // store the ship's unit vector for where it is pointing
- float speed = hypot(ship->vx, ship->vy);
- shipSpeedDir.x = ship->vx / speed;
- shipSpeedDir.y = ship->vy / speed;
+void giveUpgrades(Ship * ships, Planet * planets) {
+	int i;
+	for (i = 0; i < NUM_SHIPS; i++) {
+		if (ships[i].isLanded == 1 && planets[ships[i].landedPlanet].owner == i
+				&& planets[ships[i].landedPlanet].currentUpgrade != 0) {
+			ships[i].currentWeapon
+					= planets[ships[i].landedPlanet].currentUpgrade;
+			planets[ships[i].landedPlanet].currentUpgrade = 0;
+			planets[ships[i].landedPlanet].time_since_upgrade = time(NULL);
+		}
+	}
+}
 
- // stores the direction that the ship is facing
- Vector shipDirUnitVec;
- shipDirUnitVec.x = cos(ship->ang);
- shipDirUnitVec.y = sin(ship->ang);
- // store the vector that points from the ship to the planet
- planetVec.x = planet[nearestPlanetNum].x - ship->x;
- planetVec.y = planet[nearestPlanetNum].y - ship->y;
+void handleSpecialBullets(Ship * ships, Planet * planets) {
+	int i;
+	for (i = 0; i < NUM_SHIPS; i++) {
+		struct Bullet * bullets = ships[i].bullets;
+		int j;
+		for (j = 0; j < NUM_BULLETS; j++) {
+			if (bullets[j].weaponType == 2) {
+				if (frameCount - bullets[j].milli >= 60 && bullets[j].exploded == 0) {
+					bullets[j].exploded = 1;
+					int r;
+					for (r = 0; r < NUM_EXPLODER; r++) {
+						bullets[j].subBullets[r].x = 0;
+						bullets[j].subBullets[r].y = 0;
+						bullets[j].subBullets[r].vx = cos(2*3.1415926*r/NUM_EXPLODER)*MAX_BULLET_SPEED;
+						bullets[j].subBullets[r].vy = sin(2*3.1415926*r/NUM_EXPLODER)*MAX_BULLET_SPEED;
+					}
+				}
 
- // calulate unit vector for ship to planet
- float distanceToPlanet = hypot(planetVec.x, planetVec.y);
- unitPlanetVec.x = planetVec.x / distanceToPlanet;
- unitPlanetVec.y = planetVec.y / distanceToPlanet;
-
- // calculate the distance to surface
- float distanceToSurface = distanceToPlanet - planet[0].r;
-
- // calculate the angle between the ship's velocity and the planet
- float angleVelPlanet = compareAngles(shipSpeedDir, planetVec);
-
- if (speed != 0) {
-
- //calculates the smallest distance the the ship will be against the nearest planet in the future.
- int collisionDistance = sqrtf(powf(-planet[nearestPlanetNum].y
- * ship->vx + ship->y * ship->vx + planet[nearestPlanetNum].x
- * ship->vy - ship->x * ship->vy, 2) / (powf(ship->vx, 2)
- + powf(ship->vy, 2)));
-
- if (collisionDistance < planet[nearestPlanetNum].r + ship->r) {
- GRRLIB_Printf(400, 60, tex_Calibri, 0xFFFFFFFF, 1, "COLLISION");
- Vector perpToPlanetVec;
- perpToPlanetVec.x = -planetVec.y;
- perpToPlanetVec.y = planetVec.x;
- float angleToPoint = compareAngles(shipDirUnitVec, perpToPlanetVec);
- GRRLIB_Printf(400, 90, tex_Calibri, 0xFFFFFFFF, 1, "%f",
- angleToPoint);
- //*forward = 1;
- if (angleToPoint > 0) {
- if (angleToPoint > 1.626) {
- *turnLeft = 1;
- } else if (angleToPoint < 1.515) {
- *turnRight = 1;
- }
- if (angleToPoint<1.6 && angleToPoint>1.2){
- *forward = 1;
- }
-
- } else if (angleToPoint < 0) {
- if (angleToPoint < -1.626) {
- *turnLeft = 1;
- } else if (angleToPoint > -1.515) {
- *turnRight = 1;
- }
- if (angleToPoint>-1.6 && angleToPoint<-1.2){
- *forward = 1;
- }
-
- }
- }
-
- }
- }
- */
-
+			}
+		}
+	}
+}

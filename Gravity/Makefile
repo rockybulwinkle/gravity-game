@@ -25,7 +25,8 @@ INCLUDES	:=
 # options for code generation
 #---------------------------------------------------------------------------------
 
-CFLAGS	= -g -O3 -ffast-math -frename-registers -funroll-all-loops -fpeel-loops -Wall $(MACHDEP) $(INCLUDE)
+CFLAGS	= -g -O3  -Wall $(MACHDEP) $(INCLUDE) 
+#-ffast-math -frename-registers -funroll-all-loops -fpeel-loops
 CXXFLAGS	=	$(CFLAGS)
 
 LDFLAGS	=	-g $(MACHDEP) -Wl,-Map,$(notdir $@).map
@@ -34,9 +35,9 @@ LDFLAGS	=	-g $(MACHDEP) -Wl,-Map,$(notdir $@).map
 # any extra libraries we wish to link with the project
 # the order can-be/is critical
 #---------------------------------------------------------------------------------
-LIBS	:= -lgrrlib -lfreetype -lpngu -lpng -ljpeg -lz -lfat
+LIBS	:= -lgrrlib -lfreetype -lpngu -lpng -ljpeg -lz -lfat 
 LIBS	+= -lwiiuse
-#LIBS	+= -lmodplay -laesnd
+LIBS	+= -lmodplay -lasnd
 LIBS	+= -lbte -logc -lm
 
 #---------------------------------------------------------------------------------
@@ -136,6 +137,29 @@ $(OUTPUT).elf: $(OFILES)
 # This rule links in binary data with the .png extension
 #---------------------------------------------------------------------------------
 %.png.o	:	%.png
+#---------------------------------------------------------------------------------
+	@echo $(notdir $<)
+	$(bin2o)
+
+#---------------------------------------------------------------------------------
+# This rule links in binary data with the .mod extension
+#---------------------------------------------------------------------------------
+%.mod.o	:	%.mod
+#---------------------------------------------------------------------------------
+	@echo $(notdir $<)
+	$(bin2o)
+
+#---------------------------------------------------------------------------------
+# This rule links in binary data with the .wav extension
+#---------------------------------------------------------------------------------
+%.wav.o	:	%.wav
+#---------------------------------------------------------------------------------
+	@echo $(notdir $<)
+	$(bin2o)
+#---------------------------------------------------------------------------------
+# This rule links in binary data with the .raw extension
+#---------------------------------------------------------------------------------
+%.raw.o	:	%.raw
 #---------------------------------------------------------------------------------
 	@echo $(notdir $<)
 	$(bin2o)
